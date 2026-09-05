@@ -175,6 +175,42 @@
         </div>
     </div>
 
+    <!-- BONOS POR SEMANA (VENDEDORES) -->
+    <div class="no-print table-block mb-10">
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="font-display text-2xl section-title gold-text">Bonos por Semana <span class="text-slate-400 text-base">— Vendedores (guía fija)</span></h2>
+        </div>
+        <div class="glass rounded-xl overflow-hidden">
+            <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-left">
+                        <th class="px-3 py-3 text-xs uppercase tracking-wide gold-text font-medium">Ventas</th>
+                        <th class="px-3 py-3 text-xs uppercase tracking-wide gold-text font-medium text-right">Bono</th>
+                        <th class="no-print px-2 py-3"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template x-for="(fila, idx) in bonosSemana" :key="fila.id">
+                        <tr class="hover:bg-white/[0.03] transition">
+                            <td class="px-3 py-3 text-left" x-text="fila.ventas"></td>
+                            <td class="text-right px-3" x-text="fmt(fila.bono)"></td>
+                            <td class="no-print"></td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+            </div>
+        </div>
+        <div class="glass rounded-xl px-4 py-4 mt-4 text-xs text-slate-400 leading-relaxed space-y-1">
+            <p class="gold-text font-medium mb-1">Reglas de cancelación</p>
+            <p>El bono comienza a partir de la 4ª venta y se paga al 100% una vez que se generen ventas de manera constante cada semana.</p>
+            <p>El bono queda condicionado: si una venta se cancela, la próxima semana se le descontará el bono al agente de ventas por la razón que ya se le pagó por esa venta.</p>
+            <p>El gerente de cobranza dará seguimiento a las canceladas. En caso de tener canceladas consecutivas se revisará y se podrá retener el bono.</p>
+            <p>Ejemplo: 1 venta cancelada → vender 5 paquetes para recuperar el bono completo; 2 canceladas → vender 6 paquetes; 3 canceladas → vender 7 paquetes; así sucesivamente.</p>
+        </div>
+    </div>
+
     <!-- TABLA COBRADORES (12%) -->
     <div class="table-block mb-10">
         <div class="flex items-center justify-between mb-3">
@@ -237,10 +273,59 @@
         </div>
     </div>
 
+    <!-- PAGO EN EFECTIVO A TRABAJADORES -->
+    <div class="table-block mb-10">
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="font-display text-2xl section-title gold-text">Pago en Efectivo <span class="text-slate-400 text-base">— Trabajadores</span></h2>
+            <button @click="agregarPagoEfectivo()" class="no-print px-3 py-1.5 rounded-md border border-[#c5a466]/40 text-xs gold-text hover:bg-[#c5a466]/10 transition">
+                + Agregar trabajador
+            </button>
+        </div>
+        <div class="glass rounded-xl overflow-hidden">
+            <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-left">
+                        <th class="px-3 py-3 text-xs uppercase tracking-wide gold-text font-medium">Nombre</th>
+                        <th class="px-3 py-3 text-xs uppercase tracking-wide gold-text font-medium text-right">Monto</th>
+                        <th class="no-print px-2 py-3"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template x-for="fila in pagosAuto()" :key="'auto-' + fila.id">
+                        <tr class="hover:bg-white/[0.03] transition">
+                            <td class="px-3 py-3 text-left" x-text="fila.nombre"></td>
+                            <td class="text-right px-3" x-text="fmt(fila.monto)"></td>
+                            <td class="no-print text-center text-[10px] text-slate-500" x-text="fila.origen"></td>
+                        </tr>
+                    </template>
+                    <template x-for="(fila, idx) in pagosEfectivo" :key="fila.id">
+                        <tr class="hover:bg-white/[0.03] transition">
+                            <td><input type="text" x-model="fila.nombre" placeholder="Nombre del trabajador" class="cell-input text-left"></td>
+                            <td><input type="number" step="0.01" x-model.number="fila.monto" class="cell-input"></td>
+                            <td class="no-print text-center">
+                                <button @click="pagosEfectivo.splice(idx,1)" class="text-slate-500 hover:text-red-400 transition px-2">✕</button>
+                            </td>
+                        </tr>
+                    </template>
+                </tbody>
+                <tfoot>
+                    <tr class="bg-[#c5a466]/10 font-medium">
+                        <td class="px-3 py-3 gold-text">PAGO EN EFECTIVO TOTAL</td>
+                        <td class="text-right px-3 gold-text" x-text="'$' + fmt(sumaEfectivo())"></td>
+                        <td class="no-print"></td>
+                    </tr>
+                </tfoot>
+            </table>
+            </div>
+        </div>
+        <p class="text-xs text-slate-500 mt-2">Los vendedores y cobradores con venta o total registrado se agregan aquí automáticamente. Usa "+ Agregar trabajador" solo para pagos en efectivo adicionales que no estén en esas tablas.</p>
+    </div>
+
     <!-- TOTAL GENERAL -->
-    <div class="glass rounded-xl px-6 py-4 flex items-center justify-between">
+    <div class="no-print glass rounded-xl px-6 py-4 flex items-center justify-between">
         <span class="font-display text-xl gold-text">Total general de la semana</span>
-        <span class="font-display text-2xl gold-text" x-text="'$' + fmt(sumaCampo(vendedores,'total') + sumaCampo(cobradores,'total'))"></span>
+        <span class="font-display text-2xl gold-text" x-text="'$' + fmt(sumaCampo(vendedores,'total') + sumaCampo(cobradores,'total') + sumaEfectivoManual())"></span>
     </div>
 
     <p class="text-xs text-slate-500 mt-4">
@@ -260,20 +345,100 @@ function comisionesApp() {
         mostrarConfig: false,
         guardando: false,
         mensajeConfig: '',
+        pagosEfectivo: [],
+        bonosSemana: [],
+        nextPagoId: 1,
+        nextBonoId: 1,
 
         init() {
-            this.agregarFila('vendedores');
-            this.agregarFila('cobradores');
+            this.cargarPersistencia();
             this.webhookUrl = localStorage.getItem('ms_webhook_url') || '';
+
+            // Guarda automáticamente los nombres de vendedores/cobradores cada vez que cambian
+            this.$watch('vendedores', () => this.guardarNombres());
+            this.$watch('cobradores', () => this.guardarNombres());
+            this.$watch('bonosSemana', () => this.guardarBonos(), { deep: true });
         },
 
-        agregarFila(tipo) {
-            const fila = {
+        filaVacia() {
+            return {
                 id: this.nextId++,
                 nombre: '', venta: 0, porcentaje: 0,
                 comision: 0, apoyo: 0, bono: 0,
                 descIMSS: 0, descuentos: 0, total: 0
             };
+        },
+
+        cargarPersistencia() {
+            try {
+                const nombresVend = JSON.parse(localStorage.getItem('ms_nombres_vendedores') || 'null');
+                if (Array.isArray(nombresVend) && nombresVend.length) {
+                    this.vendedores = nombresVend.map(n => ({ ...this.filaVacia(), nombre: n }));
+                } else {
+                    this.agregarFila('vendedores');
+                }
+            } catch (e) { this.agregarFila('vendedores'); }
+
+            try {
+                const nombresCobr = JSON.parse(localStorage.getItem('ms_nombres_cobradores') || 'null');
+                if (Array.isArray(nombresCobr) && nombresCobr.length) {
+                    this.cobradores = nombresCobr.map(n => ({ ...this.filaVacia(), nombre: n }));
+                } else {
+                    this.agregarFila('cobradores');
+                }
+            } catch (e) { this.agregarFila('cobradores'); }
+
+            try {
+                const bonosGuardados = JSON.parse(localStorage.getItem('ms_bonos_semana') || 'null');
+                if (Array.isArray(bonosGuardados) && bonosGuardados.length) {
+                    this.bonosSemana = bonosGuardados.map(b => ({ id: this.nextBonoId++, ventas: b.ventas, bono: b.bono }));
+                } else {
+                    this.bonosSemana = [
+                        { id: this.nextBonoId++, ventas: '4 ventas', bono: 400.00 },
+                        { id: this.nextBonoId++, ventas: '5 ventas', bono: 500.00 },
+                        { id: this.nextBonoId++, ventas: '6 ventas', bono: 600.00 },
+                        { id: this.nextBonoId++, ventas: '7 ventas', bono: 1400.00 },
+                        { id: this.nextBonoId++, ventas: '8 ventas', bono: 1600.00 },
+                        { id: this.nextBonoId++, ventas: '9 ventas', bono: 1800.00 },
+                        { id: this.nextBonoId++, ventas: '10 ventas', bono: 2000.00 },
+                        { id: this.nextBonoId++, ventas: '11 ventas', bono: 2750.00 },
+                        { id: this.nextBonoId++, ventas: '12 ventas', bono: 3000.00 },
+                        { id: this.nextBonoId++, ventas: '13 ventas', bono: 3250.00 },
+                        { id: this.nextBonoId++, ventas: '14 ventas', bono: 3500.00 },
+                        { id: this.nextBonoId++, ventas: '15 ventas', bono: 4000.00 },
+                        { id: this.nextBonoId++, ventas: '16 ventas', bono: 4300.00 },
+                        { id: this.nextBonoId++, ventas: '17 ventas', bono: 4600.00 },
+                        { id: this.nextBonoId++, ventas: '18 ventas', bono: 4900.00 },
+                        { id: this.nextBonoId++, ventas: '19 ventas', bono: 5200.00 },
+                        { id: this.nextBonoId++, ventas: '20 ventas', bono: 6000.00 }
+                    ];
+                }
+            } catch (e) {}
+
+            this.agregarPagoEfectivo();
+        },
+
+        guardarNombres() {
+            localStorage.setItem('ms_nombres_vendedores', JSON.stringify(this.vendedores.map(f => f.nombre || '').filter(n => n !== undefined)));
+            localStorage.setItem('ms_nombres_cobradores', JSON.stringify(this.cobradores.map(f => f.nombre || '').filter(n => n !== undefined)));
+        },
+
+        guardarBonos() {
+            localStorage.setItem('ms_bonos_semana', JSON.stringify(this.bonosSemana.map(b => ({ ventas: b.ventas, bono: b.bono }))));
+        },
+
+        pagosAuto() {
+            const vend = this.vendedores
+                .filter(f => f.nombre && f.nombre.trim() !== '')
+                .map(f => ({ id: 'v' + f.id, nombre: f.nombre, monto: f.total, origen: 'Vendedor' }));
+            const cobr = this.cobradores
+                .filter(f => f.nombre && f.nombre.trim() !== '')
+                .map(f => ({ id: 'c' + f.id, nombre: f.nombre, monto: f.total, origen: 'Cobrador' }));
+            return [...vend, ...cobr];
+        },
+
+        agregarFila(tipo) {
+            const fila = this.filaVacia();
             if (tipo === 'vendedores') this.vendedores.push(fila);
             else this.cobradores.push(fila);
         },
@@ -291,6 +456,24 @@ function comisionesApp() {
 
         sumaCampo(lista, campo) {
             return lista.reduce((acc, f) => acc + (Number(f[campo]) || 0), 0);
+        },
+
+        agregarPagoEfectivo() {
+            this.pagosEfectivo.push({ id: this.nextPagoId++, nombre: '', monto: 0 });
+        },
+
+        sumaEfectivo() {
+            const auto = this.pagosAuto().reduce((acc, f) => acc + (Number(f.monto) || 0), 0);
+            const manual = this.pagosEfectivo.reduce((acc, f) => acc + (Number(f.monto) || 0), 0);
+            return auto + manual;
+        },
+
+        sumaEfectivoManual() {
+            return this.pagosEfectivo.reduce((acc, f) => acc + (Number(f.monto) || 0), 0);
+        },
+
+        agregarBono() {
+            this.bonosSemana.push({ id: this.nextBonoId++, ventas: '', bono: 0 });
         },
 
         fmt(n) {
@@ -353,9 +536,22 @@ function comisionesApp() {
             const filasCobr = this.cobradores.map(f => ['Cobrador (12%)', f.nombre, f.venta, f.porcentaje, f.comision, f.apoyo, f.bono, f.descIMSS, f.descuentos, f.total]);
             const totalVend = ['TOTAL VENDEDORES', '', this.sumaCampo(this.vendedores,'venta'), this.sumaCampo(this.vendedores,'porcentaje'), this.sumaCampo(this.vendedores,'comision'), this.sumaCampo(this.vendedores,'apoyo'), this.sumaCampo(this.vendedores,'bono'), this.sumaCampo(this.vendedores,'descIMSS'), this.sumaCampo(this.vendedores,'descuentos'), this.sumaCampo(this.vendedores,'total')];
             const totalCobr = ['TOTAL COBRADORES', '', this.sumaCampo(this.cobradores,'venta'), this.sumaCampo(this.cobradores,'porcentaje'), this.sumaCampo(this.cobradores,'comision'), this.sumaCampo(this.cobradores,'apoyo'), this.sumaCampo(this.cobradores,'bono'), this.sumaCampo(this.cobradores,'descIMSS'), this.sumaCampo(this.cobradores,'descuentos'), this.sumaCampo(this.cobradores,'total')];
-            const totalGeneral = ['TOTAL GENERAL', '', '', '', '', '', '', '', '', this.sumaCampo(this.vendedores,'total') + this.sumaCampo(this.cobradores,'total')];
+            const totalGeneral = ['TOTAL GENERAL', '', '', '', '', '', '', '', '', this.sumaCampo(this.vendedores,'total') + this.sumaCampo(this.cobradores,'total') + this.sumaEfectivoManual()];
 
-            const hoja = XLSX.utils.aoa_to_sheet([encabezados, ...filasVend, totalVend, [], ...filasCobr, totalCobr, [], totalGeneral]);
+            const encabezadosBono = ['Ventas', 'Bono'];
+            const filasBono = this.bonosSemana.map(f => [f.ventas, f.bono]);
+
+            const encabezadosEfectivo = ['Nombre', 'Monto'];
+            const filasEfectivoAuto = this.pagosAuto().map(f => [f.nombre, f.monto]);
+            const filasEfectivoManual = this.pagosEfectivo.map(f => [f.nombre, f.monto]);
+            const filasEfectivo = [...filasEfectivoAuto, ...filasEfectivoManual];
+            const totalEfectivo = ['PAGO EN EFECTIVO TOTAL', this.sumaEfectivo()];
+
+            const hoja = XLSX.utils.aoa_to_sheet([
+                encabezados, ...filasVend, totalVend, [], ...filasCobr, totalCobr, [], totalGeneral, [],
+                ['BONOS POR SEMANA - VENDEDORES'], encabezadosBono, ...filasBono, [],
+                ['PAGO EN EFECTIVO A TRABAJADORES'], encabezadosEfectivo, ...filasEfectivo, totalEfectivo
+            ]);
             hoja['!cols'] = [{wch:16},{wch:26},{wch:12},{wch:10},{wch:12},{wch:10},{wch:10},{wch:12},{wch:12},{wch:12}];
             const libro = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(libro, hoja, 'Comisiones');
