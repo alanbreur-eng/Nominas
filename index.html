@@ -47,13 +47,16 @@
     .section-title { letter-spacing: .04em; }
 
     @media print {
+        @page { size: A4 landscape; margin: 10mm; }
         body { background: #fff !important; }
         .no-print { display: none !important; }
         .glass { background: #fff !important; border: 1px solid #999 !important; backdrop-filter: none !important; }
         .print-dark-text, th, td, h1, h2, span, div { color: #111 !important; }
-        table { font-size: 10px; }
+        table { font-size: 9px; table-layout: fixed; width: 100% !important; }
+        th, td { padding: 3px 4px !important; overflow-wrap: break-word; }
         .bg-radial { background: #fff !important; }
-        .table-block { break-inside: avoid; margin-bottom: 24px; }
+        .table-block { break-inside: avoid; margin-bottom: 24px; width: 100% !important; }
+        .max-w-7xl { max-width: none !important; width: 100% !important; padding-left: 0 !important; padding-right: 0 !important; }
         .papeleta-ticket { break-inside: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     }
 </style>
