@@ -424,11 +424,11 @@ function comisionesApp() {
             this.sucursal = localStorage.getItem('ms_sucursal_actual') || 'SLRC';
             this.cargarPersistencia();
             this.webhookUrl = localStorage.getItem('ms_webhook_url') || '';
+            localStorage.removeItem('ms_bonos_semana');
 
             // Guarda automáticamente los nombres de vendedores/cobradores cada vez que cambian
             this.$watch('vendedores', () => this.guardarNombres());
             this.$watch('cobradores', () => this.guardarNombres());
-            this.$watch('bonosSemana', () => this.guardarBonos(), { deep: true });
         },
 
         nombreSucursal() {
@@ -480,16 +480,11 @@ function comisionesApp() {
             } catch (e) { this.agregarFila('cobradores'); }
 
             try {
-                const bonosGuardados = JSON.parse(localStorage.getItem('ms_bonos_semana') || 'null');
-                if (Array.isArray(bonosGuardados) && bonosGuardados.length) {
-                    this.bonosSemana = bonosGuardados.map(b => ({ id: this.nextBonoId++, ventas: b.ventas, bono: b.bono }));
-                } else {
-                    this.bonosSemana = [
-                        { id: this.nextBonoId++, ventas: '5 ventas', bono: 500.00 },
-                        { id: this.nextBonoId++, ventas: '6 ventas', bono: 600.00 },
-                        { id: this.nextBonoId++, ventas: '7 ventas', bono: 1400.00 }
-                    ];
-                }
+                this.bonosSemana = [
+                    { id: this.nextBonoId++, ventas: '5 ventas', bono: 500.00 },
+                    { id: this.nextBonoId++, ventas: '6 ventas', bono: 600.00 },
+                    { id: this.nextBonoId++, ventas: '7 ventas', bono: 1400.00 }
+                ];
             } catch (e) {}
 
             this.agregarPagoEfectivo();
@@ -498,10 +493,6 @@ function comisionesApp() {
         guardarNombres() {
             localStorage.setItem('ms_nombres_vendedores_' + this.sucursal, JSON.stringify(this.vendedores.map(f => f.nombre || '').filter(n => n !== undefined)));
             localStorage.setItem('ms_nombres_cobradores_' + this.sucursal, JSON.stringify(this.cobradores.map(f => f.nombre || '').filter(n => n !== undefined)));
-        },
-
-        guardarBonos() {
-            localStorage.setItem('ms_bonos_semana', JSON.stringify(this.bonosSemana.map(b => ({ ventas: b.ventas, bono: b.bono }))));
         },
 
         pagosAuto() {
