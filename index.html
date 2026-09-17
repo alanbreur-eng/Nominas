@@ -301,10 +301,10 @@
         </div>
     </div>
 
-    <!-- TABLA COBRADORES (12%) -->
+    <!-- TABLA COBRADORES (% editable) -->
     <div class="table-block mb-10" x-show="!mostrarPapeletas" x-cloak>
         <div class="flex items-center justify-between mb-3">
-            <h2 class="font-display text-2xl section-title gold-text">Cobradores <span class="text-slate-400 text-base">— 12%</span></h2>
+            <h2 class="font-display text-2xl section-title gold-text">Cobradores <span class="text-slate-400 text-base">— % editable</span></h2>
             <button @click="agregarFila('cobradores')" class="no-print px-3 py-1.5 rounded-md border border-[#c5a466]/40 text-xs gold-text hover:bg-[#c5a466]/10 transition">
                 + Agregar cobrador
             </button>
@@ -316,7 +316,8 @@
                     <tr class="text-left">
                         <th class="px-3 py-3 text-xs uppercase tracking-wide gold-text font-medium">Nombre</th>
                         <th class="px-3 py-3 text-xs uppercase tracking-wide gold-text font-medium text-right">Venta</th>
-                        <th class="px-3 py-3 text-xs uppercase tracking-wide gold-text font-medium text-right">12%</th>
+                        <th class="px-3 py-3 text-xs uppercase tracking-wide gold-text font-medium text-right">Tasa %</th>
+                        <th class="px-3 py-3 text-xs uppercase tracking-wide gold-text font-medium text-right">%</th>
                         <th class="px-3 py-3 text-xs uppercase tracking-wide gold-text font-medium text-right">Comisión</th>
                         <th class="px-3 py-3 text-xs uppercase tracking-wide gold-text font-medium text-right">Apoyo</th>
                         <th class="px-3 py-3 text-xs uppercase tracking-wide gold-text font-medium text-right">Bono</th>
@@ -331,13 +332,14 @@
                     <template x-for="(fila, idx) in cobradores" :key="fila.id">
                         <tr class="hover:bg-white/[0.03] transition">
                             <td><input type="text" x-model="fila.nombre" placeholder="Nombre del cobrador" class="cell-input text-left"></td>
-                            <td><input type="number" step="0.01" x-model.number="fila.venta" @input="calcularFila(fila, 0.12)" class="cell-input"></td>
+                            <td><input type="number" step="0.01" x-model.number="fila.venta" @input="calcularFila(fila, (Number(fila.tasa)||0)/100)" class="cell-input"></td>
+                            <td><input type="number" step="0.1" x-model.number="fila.tasa" @input="calcularFila(fila, (Number(fila.tasa)||0)/100)" class="cell-input" placeholder="12"></td>
                             <td class="text-right px-3 text-slate-300" x-text="fmt(fila.porcentaje)"></td>
-                            <td><input type="number" step="0.01" x-model.number="fila.comision" @input="calcularFila(fila, 0.12)" class="cell-input"></td>
-                            <td><input type="number" step="0.01" x-model.number="fila.apoyo" @input="calcularFila(fila, 0.12)" class="cell-input"></td>
-                            <td><input type="number" step="0.01" x-model.number="fila.bono" @input="calcularFila(fila, 0.12)" class="cell-input"></td>
-                            <td><input type="number" step="0.01" x-model.number="fila.descIMSS" @input="calcularFila(fila, 0.12)" class="cell-input"></td>
-                            <td><input type="number" step="0.01" x-model.number="fila.descuentos" @input="calcularFila(fila, 0.12)" class="cell-input"></td>
+                            <td><input type="number" step="0.01" x-model.number="fila.comision" @input="calcularFila(fila, (Number(fila.tasa)||0)/100)" class="cell-input"></td>
+                            <td><input type="number" step="0.01" x-model.number="fila.apoyo" @input="calcularFila(fila, (Number(fila.tasa)||0)/100)" class="cell-input"></td>
+                            <td><input type="number" step="0.01" x-model.number="fila.bono" @input="calcularFila(fila, (Number(fila.tasa)||0)/100)" class="cell-input"></td>
+                            <td><input type="number" step="0.01" x-model.number="fila.descIMSS" @input="calcularFila(fila, (Number(fila.tasa)||0)/100)" class="cell-input"></td>
+                            <td><input type="number" step="0.01" x-model.number="fila.descuentos" @input="calcularFila(fila, (Number(fila.tasa)||0)/100)" class="cell-input"></td>
                             <td class="text-right px-3 font-medium gold-text" x-text="fmt(fila.total)"></td>
                             <td class="text-center px-2">
                                 <select x-model="fila.metodoPago" class="bg-transparent text-xs text-center border border-[#c5a466]/25 rounded px-1 py-1 focus:outline-none">
@@ -355,6 +357,7 @@
                     <tr class="bg-[#c5a466]/10 font-medium">
                         <td class="px-3 py-3 gold-text">TOTALES</td>
                         <td class="text-right px-3" x-text="fmt(sumaCampo(cobradores,'venta'))"></td>
+                        <td class="text-right px-3 text-slate-500">—</td>
                         <td class="text-right px-3" x-text="fmt(sumaCampo(cobradores,'porcentaje'))"></td>
                         <td class="text-right px-3" x-text="fmt(sumaCampo(cobradores,'comision'))"></td>
                         <td class="text-right px-3" x-text="fmt(sumaCampo(cobradores,'apoyo'))"></td>
@@ -437,7 +440,7 @@
     </div>
 
     <p class="text-xs text-slate-500 mt-4">
-        Vendedores: Total = Inversión Inicial + Comisión de venta + Apoyo + Bono semanal − Descuentos. Cobradores: 12% = Venta × 12%. Total = Porcentaje + Comisión + Apoyo + Bono − Descuento IMSS − Descuentos.
+        Vendedores: Total = Inversión Inicial + Comisión de venta + Apoyo + Bono semanal − Descuentos. Cobradores: % = Venta × Tasa % (editable). Total = Porcentaje + Comisión + Apoyo + Bono − Descuento IMSS − Descuentos.
     </p>
 
 </div>
@@ -494,7 +497,7 @@ function comisionesApp() {
         filaVacia() {
             return {
                 id: this.nextId++,
-                nombre: '', venta: 0, porcentaje: 0,
+                nombre: '', venta: 0, porcentaje: 0, tasa: 12,
                 comision: 0, apoyo: 0, bono: 0, bonoSemanal: 0,
                 descIMSS: 0, descuentos: 0, total: 0, metodoPago: 'Efectivo'
             };
@@ -641,8 +644,8 @@ function comisionesApp() {
                 return;
             }
             this.guardando = true;
-            const vend = this.vendedores.filter(f => f.nombre && f.nombre.trim() !== '').map(f => ({...f, tipo: 'Vendedor', tasa: '5%'}));
-            const cobr = this.cobradores.filter(f => f.nombre && f.nombre.trim() !== '').map(f => ({...f, tipo: 'Cobrador', tasa: '12%'}));
+            const vend = this.vendedores.filter(f => f.nombre && f.nombre.trim() !== '').map(f => ({...f, tipo: 'Vendedor', tasaLabel: '5%'}));
+            const cobr = this.cobradores.filter(f => f.nombre && f.nombre.trim() !== '').map(f => ({...f, tipo: 'Cobrador', tasaLabel: (f.tasa || 0) + '%'}));
             const filas = [...vend, ...cobr];
             try {
                 await fetch(this.webhookUrl, {
@@ -683,7 +686,7 @@ function comisionesApp() {
         exportarExcel() {
             const encabezados = ['Tipo', 'Nombre', 'Venta', '%', 'Comisión', 'Apoyo', 'Bono', 'Desc. IMSS', 'Descuentos', 'Total'];
             const filasVend = this.vendedores.map(f => ['Vendedor (5%)', f.nombre, f.venta, f.porcentaje, f.comision, f.apoyo, f.bono, f.bonoSemanal, f.descuentos, f.total]);
-            const filasCobr = this.cobradores.map(f => ['Cobrador (12%)', f.nombre, f.venta, f.porcentaje, f.comision, f.apoyo, f.bono, f.descIMSS, f.descuentos, f.total]);
+            const filasCobr = this.cobradores.map(f => ['Cobrador (' + (f.tasa || 0) + '%)', f.nombre, f.venta, f.porcentaje, f.comision, f.apoyo, f.bono, f.descIMSS, f.descuentos, f.total]);
             const totalVend = ['TOTAL VENDEDORES', '', this.sumaCampo(this.vendedores,'venta'), this.sumaCampo(this.vendedores,'porcentaje'), this.sumaCampo(this.vendedores,'comision'), this.sumaCampo(this.vendedores,'apoyo'), this.sumaCampo(this.vendedores,'bono'), this.sumaCampo(this.vendedores,'bonoSemanal'), this.sumaCampo(this.vendedores,'descuentos'), this.sumaCampo(this.vendedores,'total')];
             const totalCobr = ['TOTAL COBRADORES', '', this.sumaCampo(this.cobradores,'venta'), this.sumaCampo(this.cobradores,'porcentaje'), this.sumaCampo(this.cobradores,'comision'), this.sumaCampo(this.cobradores,'apoyo'), this.sumaCampo(this.cobradores,'bono'), this.sumaCampo(this.cobradores,'descIMSS'), this.sumaCampo(this.cobradores,'descuentos'), this.sumaCampo(this.cobradores,'total')];
             const totalGeneral = ['TOTAL GENERAL', '', '', '', '', '', '', '', '', this.sumaCampo(this.vendedores,'total') + this.sumaCampo(this.cobradores,'total') + this.sumaEfectivoManual()];
@@ -711,6 +714,9 @@ function comisionesApp() {
         }
     }
 }
+</script>
+</body>
+</html>
 </script>
 </body>
 </html>
