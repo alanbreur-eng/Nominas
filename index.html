@@ -119,17 +119,31 @@
     <!-- CONFIGURACIÓN GOOGLE SHEETS -->
     <div x-show="mostrarConfig" x-cloak class="no-print glass rounded-lg px-4 py-4 mb-6">
         <label class="block text-xs text-slate-400 mb-1">URL del Web App de Google Apps Script</label>
-        <div class="flex gap-2">
+        <div class="flex gap-2 flex-wrap">
             <input type="text" x-model="webhookUrl" placeholder="https://script.google.com/macros/s/XXXXX/exec"
                    class="bg-transparent border border-[#c5a466]/25 rounded px-3 py-1.5 text-sm flex-1 focus:outline-none">
             <button @click="guardarUrl()" class="px-3 py-1.5 rounded-md border border-[#c5a466]/40 text-xs gold-text hover:bg-[#c5a466]/10 transition">
                 Guardar URL
             </button>
-            <button @click="cargarDesdeSheets()" class="px-3 py-1.5 rounded-md border border-slate-400/30 text-xs text-slate-200 hover:bg-white/5 transition">
-                Cargar historial
+            <button @click="cargarListaPeriodos()" :disabled="cargandoPeriodos" class="px-3 py-1.5 rounded-md border border-slate-400/30 text-xs text-slate-200 hover:bg-white/5 transition disabled:opacity-50">
+                <span x-text="cargandoPeriodos ? 'Buscando…' : 'Ver periodos guardados'"></span>
             </button>
         </div>
         <p class="text-xs text-slate-500 mt-2" x-text="mensajeConfig"></p>
+
+        <div x-show="periodosDisponibles.length > 0" class="mt-3 space-y-1.5">
+            <template x-for="p in periodosDisponibles" :key="p.periodo">
+                <div class="flex items-center justify-between gap-2 bg-white/[0.03] rounded-md px-3 py-2">
+                    <div class="text-xs">
+                        <span class="text-slate-200" x-text="p.periodo"></span>
+                        <span class="text-slate-500" x-text="' — ' + p.registros + ' registro(s)'"></span>
+                    </div>
+                    <button @click="cargarPeriodoDesdeSheets(p.periodo)" class="no-print px-2.5 py-1 rounded border border-[#c5a466]/40 text-[11px] gold-text hover:bg-[#c5a466]/10 transition shrink-0">
+                        Recargar
+                    </button>
+                </div>
+            </template>
+        </div>
     </div>
 
     <!-- PAPELETAS IMPRIMIBLES POR PERSONA -->
@@ -541,6 +555,8 @@ function comisionesApp() {
         mostrarConfig: false,
         guardando: false,
         mensajeConfig: '',
+        periodosDisponibles: [],
+        cargandoPeriodos: false,
         pagosEfectivo: [],
         bonosSemana: [],
         nextPagoId: 1,
@@ -779,22 +795,76 @@ function comisionesApp() {
             }
         },
 
-        async cargarDesdeSheets() {
+        async cargarListaPeriodos() {
             if (!this.webhookUrl) {
                 this.mensajeConfig = '⚠️ Primero pega y guarda la URL del Web App.';
                 return;
             }
+            this.cargandoPeriodos = true;
+            this.periodosDisponibles = [];
             try {
-                const url = this.webhookUrl + (this.webhookUrl.includes('?') ? '&' : '?') + 'sucursal=' + encodeURIComponent(this.sucursal);
+                const url = this.webhookUrl + (this.webhookUrl.includes('?') ? '&' : '?') + 'sucursal=' + encodeURIComponent(this.sucursal) + '&accion=periodos';
                 const resp = await fetch(url, { method: 'GET' });
                 const data = await resp.json();
                 if (data.ok) {
-                    this.mensajeConfig = `📄 Historial de ${this.nombreSucursal()}: ${data.registros} registro(s) guardados hasta ahora.`;
+                    this.periodosDisponibles = data.periodos || [];
+                    this.mensajeConfig = this.periodosDisponibles.length
+                        ? `📄 ${this.periodosDisponibles.length} periodo(s) guardado(s) en ${this.nombreSucursal()}.`
+                        : `📄 Aún no hay periodos guardados en ${this.nombreSucursal()}.`;
                 } else {
                     this.mensajeConfig = '⚠️ No se pudo leer el historial.';
                 }
             } catch (err) {
                 this.mensajeConfig = '⚠️ No se pudo conectar (revisa que la URL termine en /exec y que el acceso sea "Cualquier usuario").';
+            } finally {
+                this.cargandoPeriodos = false;
+            }
+        },
+
+        async cargarPeriodoDesdeSheets(periodoSeleccionado) {
+            if (!this.webhookUrl) return;
+            if (!confirm(`Esto reemplazará los datos capturados actualmente en pantalla con los de "${periodoSeleccionado}". ¿Continuar?`)) return;
+
+            this.mensajeConfig = '⏳ Cargando datos guardados...';
+            try {
+                const url = this.webhookUrl + (this.webhookUrl.includes('?') ? '&' : '?') + 'sucursal=' + encodeURIComponent(this.sucursal) + '&periodo=' + encodeURIComponent(periodoSeleccionado);
+                const resp = await fetch(url, { method: 'GET' });
+                const data = await resp.json();
+                if (!data.ok) {
+                    this.mensajeConfig = '⚠️ No se pudo cargar ese periodo.';
+                    return;
+                }
+
+                const filas = data.filas || [];
+                this.vendedores = [];
+                this.cobradores = [];
+                this.oficina = [];
+
+                filas.forEach(f => {
+                    if (f.tipo === 'Vendedor') {
+                        const fila = { ...this.filaVacia(), nombre: f.nombre || '', venta: Number(f.venta) || 0, comision: Number(f.comision) || 0, apoyo: Number(f.apoyo) || 0, bono: Number(f.bono) || 0, bonoSemanal: Number(f.bonoSemanal) || 0, descuentos: Number(f.descuentos) || 0 };
+                        this.calcularFilaVendedor(fila);
+                        this.vendedores.push(fila);
+                    } else if (f.tipo === 'Cobrador') {
+                        const fila = { ...this.filaVacia(), nombre: f.nombre || '', venta: Number(f.venta) || 0, tasa: Number(f.tasa) || 12, comision: Number(f.comision) || 0, apoyo: Number(f.apoyo) || 0, bono: Number(f.bono) || 0, descIMSS: Number(f.descIMSS) || 0, descuentos: Number(f.descuentos) || 0 };
+                        this.calcularFila(fila, (Number(fila.tasa) || 0) / 100);
+                        this.cobradores.push(fila);
+                    } else if (f.tipo === 'Oficina') {
+                        const fila = { ...this.filaVaciaOficina(), nombre: f.nombre || '', monto: Number(f.monto) || 0, descuento: Number(f.descuento) || 0, preparacion: Number(f.preparacion) || 0 };
+                        this.calcularFilaOficina(fila);
+                        this.oficina.push(fila);
+                    }
+                });
+
+                if (this.vendedores.length === 0) this.agregarFila('vendedores');
+                if (this.cobradores.length === 0) this.agregarFila('cobradores');
+                if (this.oficina.length === 0) this.agregarFila('oficina');
+
+                this.periodo = periodoSeleccionado;
+                this.guardarNombres();
+                this.mensajeConfig = `✅ Se recargaron ${filas.length} registro(s) de "${periodoSeleccionado}".`;
+            } catch (err) {
+                this.mensajeConfig = '⚠️ No se pudo conectar para cargar ese periodo.';
             }
         },
 
