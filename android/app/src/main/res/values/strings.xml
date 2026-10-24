@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Comisiones Monte Sinaí</string>
+    <string name="title_activity_main">Comisiones Monte Sinaí</string>
+    <string name="package_name">com.montesinai.comisiones</string>
+    <string name="custom_url_scheme">com.montesinai.comisiones</string>
+</resources>

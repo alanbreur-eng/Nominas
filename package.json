@@ -1,0 +1,24 @@
+{
+  "name": "nominas-comisiones",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Monte Sinaí - Registro de Comisiones (web + APK con Capacitor)",
+  "scripts": {
+    "build:web": "node scripts/build-web.mjs",
+    "sync": "npm run build:web && cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/filesystem": "^8.1.5",
+    "@capacitor/share": "^8.0.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.3",
+    "@fontsource/cormorant-garamond": "^5.2.0",
+    "@fontsource/inter": "^5.2.0",
+    "alpinejs": "^3.15.0",
+    "tailwindcss": "^3.4.19",
+    "xlsx": "0.18.5"
+  }
+}

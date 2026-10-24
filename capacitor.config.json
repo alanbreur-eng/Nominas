@@ -1,0 +1,8 @@
+{
+  "appId": "com.montesinai.comisiones",
+  "appName": "Comisiones Monte Sinaí",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false
+  }
+}
